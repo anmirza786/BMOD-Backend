@@ -21,6 +21,7 @@ const Founder = require("./model/founders");
 const Investor = require("./model/invester");
 const Marketplace = require("./model/marketplace");
 const File = require("./middleware/upload");
+const UserDescription = require("./model/userdescription");
 const auth = require("./middleware/auth");
 let multipleFields = File.fields([
   {
@@ -252,6 +253,15 @@ app.get("/user/:id", auth, function (req, res) {
       return res.status(200).json(u);
     })
     .catch((err) => console.log(err));
+});
+app.get("/users", function (req, res) {
+  User.find(function (err, todos) {
+    if (err) {
+      console.log(err);
+    } else {
+      res.json(todos);
+    }
+  }).catch((err) => console.log(err));
 });
 app.get("/ideas/:id", async (req, res) => {
   Idea.findById(req.params.id)
