@@ -23,6 +23,9 @@ const Marketplace = require("./model/marketplace");
 const File = require("./middleware/upload");
 const UserDescription = require("./model/userdescription");
 const auth = require("./middleware/auth");
+const Query = require("./model/Query");
+const chatRoutes = require("./routes/chatRoutes");
+const messageRoutes = require("./routes/messageRoutes");
 let multipleFields = File.fields([
   {
     name: "thumbnail",
@@ -330,6 +333,20 @@ app.get("/marketplaces", auth, async (req, res) => {
     console.log(err);
   }
 });
+app.get("/investors", async (req, res) => {
+  try {
+    // console.log(req.files, req.file);
+    Investor.find(function (err, todos) {
+      if (err) {
+        console.log(err);
+      } else {
+        res.json(todos);
+      }
+    });
+  } catch (err) {
+    console.log(err);
+  }
+});
 app.post("/marketplace", auth, async (req, res) => {
   try {
     const { market_name } = req.body;
@@ -384,4 +401,29 @@ app.delete(
     }
   }
 );
+app.get("/search/:key", async (req, res) => {
+  try {
+    console.log(req.params);
+
+    const data = await Idea.find({
+      $or: [
+        {
+          name: { $regex: req.params.key },
+          // description: { $regex: req.params.key },
+        },
+      ],
+    });
+
+    res.json({ data: data });
+  } catch (err) {
+    console.log(err);
+  }
+
+  // let body = JSON.stringify({
+  //   key,
+  // });
+  // res.send(body);
+});
+app.use("/api/chat", chatRoutes);
+app.use("/api/message", messageRoutes);
 module.exports = app;
