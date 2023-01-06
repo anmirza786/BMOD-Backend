@@ -24,8 +24,6 @@ const File = require("./middleware/upload");
 const UserDescription = require("./model/userdescription");
 const auth = require("./middleware/auth");
 const Query = require("./model/Query");
-const chatRoutes = require("./routes/chatRoutes");
-const messageRoutes = require("./routes/messageRoutes");
 let multipleFields = File.fields([
   {
     name: "thumbnail",
@@ -57,7 +55,7 @@ app.post("/register", File.single("profile"), async (req, res) => {
       is_entreprenure,
     } = req.body;
     let profile = req.file.path;
-    console.log(req.body)
+    console.log(req.body);
     // Validate user input
     if (
       !(
@@ -277,6 +275,20 @@ app.get("/ideas/:id", async (req, res) => {
     })
     .catch((err) => console.log(err));
 });
+app.patch("/updateidea/:id", auth, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const updatedData = req.body;
+    console.log(updatedData);
+    const options = { new: true };
+
+    const result = await Idea.findByIdAndUpdate(id, updatedData, options);
+
+    res.status(200).send(result);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
 app.get("/ideas", async (req, res) => {
   try {
     // console.log(req.files, req.file);
@@ -425,6 +437,6 @@ app.get("/search/:key", async (req, res) => {
   // });
   // res.send(body);
 });
-app.use("/api/chat", chatRoutes);
-app.use("/api/message", messageRoutes);
+// app.use("/api/chat", chatRoutes);
+// app.use("/api/message", messageRoutes);
 module.exports = app;
