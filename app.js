@@ -57,6 +57,7 @@ app.post("/register", File.single("profile"), async (req, res) => {
       is_entreprenure,
     } = req.body;
     let profile = req.file.path;
+    console.log(req.body)
     // Validate user input
     if (
       !(
