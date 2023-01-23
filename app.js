@@ -1,6 +1,9 @@
 require("dotenv").config();
 require("./config/database").connect();
+const chatRoutes = require("./routes/chatRoutes");
+const messageRoutes = require("./routes/messageRoutes");
 const express = require("express");
+const path = require("path");
 var bcrypt = require("bcryptjs");
 var jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
@@ -24,6 +27,8 @@ const File = require("./middleware/upload");
 const UserDescription = require("./model/userdescription");
 const auth = require("./middleware/auth");
 const Query = require("./model/Query");
+const Conversation = require('./model/conversation')
+const Message = require('./model/message')
 let multipleFields = File.fields([
   {
     name: "thumbnail",
@@ -437,6 +442,79 @@ app.get("/search/:key", async (req, res) => {
   // });
   // res.send(body);
 });
-// app.use("/api/chat", chatRoutes);
+//post conversations
+app.post('/conversation', async (req,res)=>{
+  const newConversation = new Conversation({
+      members:[req.body.senderId,req.body.reciverId],
+  })
+  try{
+    const savedconversation = await newConversation.save()
+    res.status(200).json(savedconversation)
+  }catch(err){
+    res.status(500).json(err)
+  }
+})
+//get conversations
+app.get('/conversation/:userId',async (req,res)=>{
+  try{
+    const conversation = await Conversation.find({
+      members: { $in:[req.params.userId] }
+    })
+    res.status(200).json(conversation)
+  }catch(err){
+    res.status(500).json(err)
+  }
+})
+//post messages
+app.post('/message', async (req,res)=>{
+  const newMessage = new Message(req.body)
+  try{
+    const savedmessage = await newMessage.save()
+    res.status(200).json(savedmessage)
+  }catch(err){
+    res.status(500).json(err)
+  }
+})
+//get messages
+app.get('/message/:convid',async (req,res)=>{
+  try{
+    console.log(req.param.convid)
+    const message = await Message.find({
+      conversationId: req.params.convid
+    })
+    res.status(200).json(message)
+  }catch(err){
+    res.status(500).json(err)
+  }
+})
 // app.use("/api/message", messageRoutes);
+//socket io
+
+
+app.use("/api/chat", chatRoutes);
+app.use("/api/message", messageRoutes);
+
+
+
+//deployment
+const __dirname1 = path.resolve();
+const { API_PORT } = process.env;
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname1, "/frontend/build")));
+
+  app.get("*", (req, res) =>
+    res.sendFile(path.resolve(__dirname1, "frontend", "build", "index.html"))
+  );
+} else {
+  app.get("/", (req, res) => {
+    res.send("API is running..");
+  });
+}
+
+// app.use(notFound);
+// app.use(errorHandler);
+
+
+
+
 module.exports = app;
